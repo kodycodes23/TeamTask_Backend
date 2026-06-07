@@ -10,14 +10,24 @@ export function NewTaskForm({
 }) {
   const [title, setTitle] = useState("");
   const [assigneeId, setAssigneeId] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim()) return;
-    await createTask(title.trim(), assigneeId ? Number(assigneeId) : null);
-    setTitle("");
-    setAssigneeId("");
-    onCreated();
+    const trimmedTitle = title.trim();
+
+    if (!trimmedTitle || isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    try {
+      await createTask(trimmedTitle, assigneeId ? Number(assigneeId) : null);
+      setTitle("");
+      setAssigneeId("");
+      onCreated();
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -26,11 +36,13 @@ export function NewTaskForm({
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="New task..."
+        disabled={isSubmitting}
         style={{ flex: 1, padding: 8 }}
       />
       <select
         value={assigneeId}
         onChange={(e) => setAssigneeId(e.target.value)}
+        disabled={isSubmitting}
         style={{ padding: 8 }}
       >
         <option value="">Unassigned</option>
@@ -40,8 +52,8 @@ export function NewTaskForm({
           </option>
         ))}
       </select>
-      <button type="submit" style={{ padding: "8px 16px" }}>
-        Add
+      <button type="submit" disabled={isSubmitting || !title.trim()} style={{ padding: "8px 16px" }}>
+        {isSubmitting ? "Adding..." : "Add"}
       </button>
     </form>
   );
