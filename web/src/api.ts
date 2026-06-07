@@ -4,6 +4,8 @@ export interface Task {
   id: number;
   title: string;
   status: "open" | "done";
+  assignee_id: number | null;
+  assignee_name: string | null;
   created_at: string;
 }
 
@@ -16,19 +18,30 @@ export interface User {
 export async function fetchTasks(filters: {
   status?: string;
   search?: string;
+  assigneeId?: number | "unassigned";
 }): Promise<Task[]> {
   const params = new URLSearchParams();
   if (filters.status) params.set("status", filters.status);
   if (filters.search) params.set("search", filters.search);
+  if (filters.assigneeId !== undefined) {
+    params.set("assigneeId", String(filters.assigneeId));
+  }
   const res = await fetch(`${BASE}/tasks?${params.toString()}`);
   return res.json();
 }
 
-export async function createTask(title: string): Promise<Task> {
+export async function createTask(
+  title: string,
+  assigneeId?: number | null
+): Promise<Task> {
   const res = await fetch(`${BASE}/tasks`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title }),
+    body: JSON.stringify(
+      assigneeId === undefined || assigneeId === null
+        ? { title }
+        : { title, assigneeId }
+    ),
   });
   return res.json();
 }
