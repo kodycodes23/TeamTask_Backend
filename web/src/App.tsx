@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchTasks, fetchUsers, setTaskStatus, type Task, type User } from "./api.js";
 import { TaskList } from "./components/TaskList.js";
 import { NewTaskForm } from "./components/NewTaskForm.js";
@@ -9,8 +9,10 @@ export function App() {
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
   const [assigneeFilter, setAssigneeFilter] = useState("");
+  const latestLoadId = useRef(0);
 
-  const load = useCallback(() => {
+  const load = useCallback(async () => {
+    const loadId = ++latestLoadId.current;
     const assigneeId =
       assigneeFilter === ""
         ? undefined
@@ -18,7 +20,11 @@ export function App() {
           ? "unassigned"
           : Number(assigneeFilter);
 
-    fetchTasks({ status, search, assigneeId }).then(setTasks);
+    const nextTasks = await fetchTasks({ status, search, assigneeId });
+
+    if (loadId === latestLoadId.current) {
+      setTasks(nextTasks);
+    }
   }, [status, search, assigneeFilter]);
 
   useEffect(() => {
