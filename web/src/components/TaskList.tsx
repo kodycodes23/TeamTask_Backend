@@ -37,6 +37,9 @@ export function TaskList({
           >
             {task.title}
           </span>
+          <span style={{ marginLeft: "auto", color: "#666", fontSize: 12 }}>
+            {task.assignee_name ? `Assigned to ${task.assignee_name}` : "Unassigned"}
+          </span>
         </li>
       ))}
     </ul>
